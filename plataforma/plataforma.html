@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArqueoJogos</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('Plataforma__1_.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1300px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            color: white;
+        }
+
+        .header h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 45px;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .games-grid {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .game-card {
+            width: 300px;
+            height: 380px;
+            background: linear-gradient(145deg, rgba(139, 90, 43, 0.85), rgba(90, 55, 25, 0.95));
+            border-radius: 18px;
+            border: 2px solid rgba(255, 185, 120, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: 0.4s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .game-card h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6em;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* BOTÃO + ÍCONE */
+        .button-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .play-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            cursor: pointer;
+            background: linear-gradient(90deg, #ffb347, #ffcc33);
+            color: #3a250f;
+            transition: 0.3s;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .info-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #ffb347, #ffcc33);
+            color: #3a250f;
+            font-weight: bold;
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s ease;
+
+        }
+
+        .info-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* MODAL JOGO */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: black;
+            display: none;
+            z-index: 9999;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        #game-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .close-x {
+            position: fixed;
+            top: 20px;
+            right: 25px;
+            background: none;
+            border: none;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+            z-index: 10000;
+        }
+
+        /* MODAL INSTRUÇÕES */
+        .instructions-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+        }
+
+        .instructions-modal.active {
+            display: flex;
+        }
+
+        .instructions-card {
+            width: 380px;
+            max-width: 90%;
+            background: linear-gradient(145deg, rgba(139, 90, 43, 0.95), rgba(90, 55, 25, 0.98));
+            border-radius: 16px;
+            padding: 25px;
+            border: 2px solid rgba(255, 185, 120, 0.5);
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .instructions-card h3 {
+            font-family: 'Cinzel', serif;
+            margin-bottom: 15px;
+        }
+
+        .close-instructions {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>ARQUEOJOGOS</h1>
+            <p>Escolha seu jogo e embarque em uma aventura arqueológica!</p>
+        </div>
+
+        <div class="games-grid">
+
+            <div class="game-card">
+                <h2>TERMO</h2>
+                <div class="icon">🧭</div>
+                <div class="button-group">
+                    <button class="play-btn" onclick="openGame(1)">Explorar</button>
+                    <div class="info-icon" onclick="openInstructions(1)">i</div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <h2>EXPLORE EM 3D</h2>
+                <div class="icon">🏺</div>
+                <div class="button-group">
+                    <button class="play-btn" onclick="openGame(2)">Explorar</button>
+                    <div class="info-icon" onclick="openInstructions(2)">i</div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <h2>ARQUEOGUESSER</h2>
+                <div class="icon">🗺️</div>
+                <div class="button-group">
+                    <button class="play-btn" onclick="openGame(3)">Explorar</button>
+                    <div class="info-icon" onclick="openInstructions(3)">i</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL JOGO -->
+    <div class="modal" id="gameModal">
+        <iframe id="game-iframe"></iframe>
+        <button class="close-x" onclick="closeGame()">✕</button>
+    </div>
+
+    <!-- MODAL INSTRUÇÕES -->
+    <div class="instructions-modal" id="instructionsModal">
+        <div class="instructions-card">
+            <button class="close-instructions" onclick="closeInstructions()">✕</button>
+            <h3 id="instructions-title"></h3>
+            <p id="instructions-text"></p>
+        </div>
+    </div>
+
+    <script>
+
+        const games = {
+            1: { path: "jogo1/index.html" },
+            2: { path: "jogo2/index.html" },
+            3: { path: "jogo3/index.html" }
+        };
+
+        const instructions = {
+            1: { title: "TERMO", text: "No jogo Termo, o objetivo é descobrir uma palavra secreta relacionada à arqueologia. A cada tentativa, você digita uma palavra e recebe pistas visuais que indicam se as letras estão corretas e se estão na posição certa.As cores funcionam como guia: letras destacadas em verde estão na posição correta; letras em amarelo fazem parte da palavra, mas estão no lugar errado; letras em cinza não pertencem à palavra secreta. Com base nessas pistas, você deve ajustar suas próximas tentativas até descobrir a palavra antes que o número de tentativas se esgote." },
+            2: { title: "EXPLORE EM 3D", text: "Em Explore em 3D, você pode visualizar um artefato arqueológico em três dimensões e analisá-lo de forma interativa. É possível girar o objeto utilizando o mouse (ou o toque, em dispositivos móveis) para observar todos os ângulos e detalhes. A proposta é estimular a observação atenta: textura, forma, desgaste, símbolos e características estruturais podem fornecer informações importantes. Caso o jogo inclua perguntas, elas devem ser respondidas com base nessa análise visual." },
+            3: { title: "ARQUEOGUESSER", text: "No Arqueoguesser, o desafio é identificar a localização de um sítio arqueológico a partir de uma imagem ou ambiente apresentado na tela. O jogador deve observar atentamente elementos como paisagem, arquitetura, clima, vegetação e características culturais. A partir dessas pistas, é necessário indicar no mapa o local que parece corresponder à cena apresentadam e o ano que o patrimônio histórico pertence. A pontuação é definida pela proximidade entre o palpite e a localização/período corretos. Quanto mais preciso for o seu julgamento, maior será sua pontuação." }
+        };
+
+        function openGame(gameNumber) {
+            document.getElementById('game-iframe').src = games[gameNumber].path;
+            document.getElementById('gameModal').classList.add('active');
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeGame() {
+            document.getElementById('game-iframe').src = "";
+            document.getElementById('gameModal').classList.remove('active');
+            document.body.style.overflow = "auto";
+        }
+
+        function openInstructions(gameNumber) {
+            const info = instructions[gameNumber];
+            document.getElementById("instructions-title").textContent = info.title;
+            document.getElementById("instructions-text").textContent = info.text;
+            document.getElementById("instructionsModal").classList.add("active");
+        }
+
+        function closeInstructions() {
+            document.getElementById("instructionsModal").classList.remove("active");
+        }
+
+        document.getElementById("instructionsModal").addEventListener("click", function (e) {
+            if (e.target === this) closeInstructions();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeGame();
+                closeInstructions();
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>
