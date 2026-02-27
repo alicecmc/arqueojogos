@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museu Digital</title>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgb(245, 238, 220);
+            font-family: Arial;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .nav-btn {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 28px;
+            background: none;
+            border: none;
+            color: rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        .nav-btn:hover {
+            color: rgba(0, 0, 0, 0.9);
+        }
+
+        .prev {
+            left: 20px;
+        }
+
+        .next {
+            right: 20px;
+        }
+
+        /* HOTSPOTS */
+        .hotspot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .hotspot:hover {
+            transform: scale(1.4);
+        }
+
+        /* OVERLAY */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s ease;
+            z-index: 15;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* CARD */
+        .card {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 320px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s ease;
+            z-index: 20;
+        }
+
+        .card.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="nav-btn prev" onclick="anterior()">&#10094;</button>
+
+    <model-viewer id="modelo" alt="artefato arqueológico" src="assets/artifact1.glb" camera-controls auto-rotate>
+    </model-viewer>
+
+    <button class="nav-btn next" onclick="proximo()">&#10095;</button>
+
+    <div class="overlay" id="overlay" onclick="fecharCard()"></div>
+
+    <div class="card" id="card">
+        <h3 id="cardTitulo"></h3>
+        <p id="cardTexto"></p>
+    </div>
+
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
+    </script>
+
+    <script>
+        const modelo = document.getElementById("modelo");
+        const overlay = document.getElementById("overlay");
+        const card = document.getElementById("card");
+        const cardTitulo = document.getElementById("cardTitulo");
+        const cardTexto = document.getElementById("cardTexto");
+
+        const dadosArtefatos = [
+            {
+                modelo: "assets/artifact1.glb",
+                hotspots: [
+                    { pos: "-0.37m 1.05m 2.06m", texto: "Este vaso é uma cerâmica do Período Clássico Maia feita no estilo códice, usando traços pretos finos sobre fundo creme para imitar a escrita de manuscritos antigos." },
+                    { pos: "0.44m 0.65m 1.72m", texto: "A cena central mostra o deus da chuva, Chahk, em uma montanha sagrada, simbolizando a fertilidade e a origem das nuvens através de um sopro fumegante." },
+                    { pos: "-0.13m 0.13m 2.23m", texto: "O objeto era um símbolo de status da elite, usado para beber cacau em banquetes reais e depositado em túmulos como oferenda ritual." }
+                ]
+            },
+            {
+                modelo: "assets/artifact2.glb",
+                hotspots: [
+                    { pos: "-7.08m 6.07m 0.33m", texto: "Esta hacha de pedra de Veracruz (600–900 d.C.) é um artefato ritual esculpido em blocos sólidos de rocha, como o basalto, demonstrando grande habilidade técnica ao criar uma peça fina e resistente que, apesar do nome, não possuía corte funcional para uso como ferramenta." },
+                    { pos: "9.95m -0.32m 2.64m", texto: "O desenho detalha um perfil humano com um adorno de cabeça complexo e furos que sugerem que o objeto era fixado em outras estruturas. Essas representações muitas vezes remetiam a divindades ou cabeças de troféu, um tema comum na arte da Mesoamérica associado ao prestígio e ao poder." },
+                    { pos: "-5.49m -11.21m 7.71m", texto: "Sua principal função era servir como acessório cerimonial no jogo de bola, sendo encaixada em cinturões de pedra (yugos) ou usada como marcador na quadra. O artefato simbolizava a conexão sagrada entre o esporte, o sacrifício ritual e a manutenção da ordem cósmica para aquelas civilizações." }
+                ]
+            },
+            {
+                modelo: "assets/artifact3.glb",
+                hotspots: [
+                    { pos: "-0.27m 2.40m 0.49m", texto: "O lécito é um vaso de cerâmica da Ática (c. 500 a.C.) feito de argila alaranjada. As figuras negras eram criadas com um verniz de argila que escurecia no forno, com detalhes gravados por incisões." },
+                    { pos: "-0.90m -0.64m 0.75m", texto: "A pintura exibe guerreiros ou deuses em ação, técnica comum do Pintor de Diosphos. O design foca no movimento, usando pernas flexionadas e escudos para dar ritmo e vida à cena de batalha." },
+                    { pos: "0.47m -2.10m 0.67m", texto: "Sua função era guardar óleos e perfumes caros. Por ser um item de luxo, era usado principalmente em rituais de sepultamento, servindo como uma oferenda final para honrar a memória dos mortos." }
+                ]
+            }
+        ];
+
+        let indiceAtual = 0;
+
+        function atualizarModelo() {
+            modelo.src = dadosArtefatos[indiceAtual].modelo;
+            fecharCard();
+            criarHotspots();
+        }
+
+        function criarHotspots() {
+            modelo.querySelectorAll('.hotspot').forEach(h => h.remove());
+
+            dadosArtefatos[indiceAtual].hotspots.forEach((ponto, i) => {
+                const btn = document.createElement("button");
+                btn.className = "hotspot";
+                btn.slot = `hotspot-${i}`;
+                btn.dataset.position = ponto.pos;
+                btn.dataset.normal = "0m 1m 0m";
+
+                btn.onclick = () => {
+                    cardTitulo.textContent = ponto.titulo;
+                    cardTexto.textContent = ponto.texto;
+                    overlay.classList.add("active");
+                    card.classList.add("active");
+                };
+
+                modelo.appendChild(btn);
+            });
+        }
+
+        function fecharCard() {
+            overlay.classList.remove("active");
+            card.classList.remove("active");
+        }
+
+        function proximo() {
+            indiceAtual = (indiceAtual + 1) % dadosArtefatos.length;
+            atualizarModelo();
+        }
+
+        function anterior() {
+            indiceAtual--;
+            if (indiceAtual < 0) indiceAtual = dadosArtefatos.length - 1;
+            atualizarModelo();
+        }
+
+        atualizarModelo();
+    </script>
+
+</body>
+
+</html>

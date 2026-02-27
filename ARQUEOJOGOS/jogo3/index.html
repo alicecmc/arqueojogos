@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desvende o sítio</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .zoom-container {
+            overflow: hidden;
+            border-radius: 12px;
+            border: 4px solid #4a3425;
+            width: 100%;
+            max-height: 80vh;
+            cursor: grab;
+            position: relative;
+        }
+
+        .zoom-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.1s ease;
+            transform-origin: center center;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: #2b1d14;
+            color: #f5e6cc;
+            overflow-x: hidden;
+        }
+
+        /* TOPO */
+
+        .top-bar {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            background: #3a281c;
+        }
+
+        /* LAYOUT PRINCIPAL */
+
+        .container {
+            height: 100vh;
+            display: flex;
+            padding: 100px 40px 40px 40px;
+            gap: 40px;
+        }
+
+        .left {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #map {
+            height: 250px;
+            border-radius: 12px;
+            border: 3px solid #4a3425;
+        }
+
+        .slider-box {
+            background: #4a3425;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        #anoValor {
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: #d6b98c;
+            font-weight: 600;
+        }
+
+        /* Era label badge */
+        .era-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .era-ac {
+            background: #7a4a2a;
+            color: #f5c07a;
+        }
+
+        .era-dc {
+            background: #2a5a3a;
+            color: #a0e8b0;
+        }
+
+        /* Timeline com marcador central */
+        .timeline-wrap {
+            position: relative;
+            margin-top: 8px;
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #c9a97f;
+            margin-bottom: 4px;
+        }
+
+        .timeline-center-mark {
+            position: absolute;
+            bottom: 0;
+            width: 2px;
+            height: 8px;
+            background: #d6b98c88;
+            pointer-events: none;
+            border-radius: 2px;
+        }
+
+        .timeline-center-label {
+            position: absolute;
+            top: 0;
+            font-size: 10px;
+            color: #d6b98c99;
+            white-space: nowrap;
+            transform: translateX(-50%);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #7a4a2a 0%, #7a4a2a 82.9%, #2a5a3a 82.9%, #2a5a3a 100%);
+            border-radius: 5px;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #d6b98c;
+            cursor: pointer;
+            border: 2px solid #2b1d14;
+            box-shadow: 0 0 6px #00000066;
+        }
+
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            background: #a8743a;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #c08b4d;
+        }
+
+        /* OVERLAY RESULTADO */
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #2b1d14;
+            display: none;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        .result-map {
+            width: 100%;
+            height: 450px;
+            border-radius: 12px;
+            border: 3px solid #4a3425;
+            margin-bottom: 30px;
+        }
+
+        .result-middle {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .result-text {
+            flex: 1;
+            min-width: 300px;
+            background: #3a281c;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        .result-images {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            gap: 20px;
+        }
+
+
+
+
+
+
+
+
+        .result-images img {
+            width: 50%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 3px solid #4a3425;
+        }
+
+        .result-bottom {
+            background: #4a3425;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .ano-real {
+            font-size: 38px;
+            font-weight: 700;
+            color: #d6b98c;
+        }
+
+        .ano-diff,
+        .distancia-real {
+            font-size: 14px;
+            color: #c9a97f;
+        }
+
+        .local-real {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .linha {
+            margin-bottom: 20px;
+        }
+
+        .finalTela {
+            display: none;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <div>Rodada <span id="roundAtual">1</span>/5</div>
+        <div>Pontuação: <span id="pontuacaoTotal">0</span></div>
+    </div>
+
+    <div class="container">
+        <div class="left">
+            <div class="zoom-container">
+                <img id="imagemSite">
+            </div>
+        </div>
+
+        <div class="right">
+            <div id="map"></div>
+
+            <div class="slider-box">
+                <h3>ANO EM QUE FOI ERGUIDO
+                    <span class="era-badge" id="eraBadge">d.C.</span>
+                </h3>
+                <div id="anoValor">1900 d.C.</div>
+
+                <div class="timeline-wrap">
+                    <div class="timeline-labels">
+                        <span>10000 a.C.</span>
+                        <span>2026 d.C.</span>
+                    </div>
+                    <!-- O slider usa valores de -10000 a 2026. Valor 0 = ano 1 d.C. -->
+                    <div style="position:relative; padding-top:20px;">
+                        <span class="timeline-center-label" id="zeroCenterLabel">ano 0</span>
+                        <div class="timeline-center-mark" id="zeroCenterMark"></div>
+                        <input type="range" id="anoSlider" min="-10000" max="2026" value="1900">
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="confirmarResposta()">Confirmar</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlayResultado">
+
+        <div id="miniMap" class="result-map"></div>
+
+        <div class="result-middle">
+
+            <div class="result-text">
+
+                <h2 id="tituloResultado"></h2>
+
+                <div class="linha">
+                    📅
+                    <div class="ano-real" id="anoReal"></div>
+                    <div class="ano-diff" id="anoDiff"></div>
+                </div>
+
+                <div class="linha">
+                    📍
+                    <div class="local-real" id="localReal"></div>
+                    <div class="distancia-real" id="distanciaReal"></div>
+                </div>
+
+            </div>
+
+            <div class="result-images">
+                <img id="imgHistorica">
+                <img id="imgAtual">
+            </div>
+
+        </div>
+
+        <div class="result-bottom">
+            <h3>Contexto Histórico</h3>
+            <p id="descricaoResultado"></p>
+
+            <h3>Impacto Atual</h3>
+            <p id="impactoResultado"></p>
+
+            <button onclick="proximaRodada()">Continuar</button>
+        </div>
+
+    </div>
+
+    <div class="finalTela" id="finalTela">
+        <h1>Exploração Finalizada</h1>
+        <h2>Pontuação Final: <span id="finalScore"></span></h2>
+        <button onclick="location.reload()">Jogar novamente</button>
+    </div>
+
+    <script>
+
+        // ─── UTILITÁRIOS DE EXIBIÇÃO DE ANO ──────────────────────────────────────────
+        // O slider usa valores inteiros onde:
+        //   valor < 0  → ano a.C. (ex: -500 = 500 a.C.)
+        //   valor >= 0 → ano d.C. (ex: 2026 = 2026 d.C.)
+        // O "ano 0" no slider representa a transição a.C./d.C.
+
+        function formatarAno(valor) {
+            valor = parseInt(valor);
+            if (valor < 0) {
+                return `${Math.abs(valor)} a.C.`;
+            } else {
+                return `${valor} d.C.`;
+            }
+        }
+
+        function getEra(valor) {
+            return parseInt(valor) < 0 ? "a.C." : "d.C.";
+        }
+
+        // Distância em anos entre dois valores do slider (pode cruzar o zero)
+        function diffAnos(v1, v2) {
+            return Math.abs(parseInt(v1) - parseInt(v2));
+        }
+
+        // ─── DADOS ───────────────────────────────────────────────────────────────────
+
+        const sitios = [
+            {
+                nome: "Tumba de Mereruka - Saqqara, Egito",
+                imagem: "assets/tumba_antiga.jpg",
+                imagemAtual: "assets/tumba_atual.jpg",
+                lat: 29.8711,
+                lng: 31.2165,
+                ano: -2340,
+                descricao: "Localizada na necrópole de Saqqara, a tumba de Mereruka data do século XXIII a.C., durante a 6ª Dinastia do Antigo Império Egípcio. Mereruka foi vizir do faraó Teti e uma das figuras mais influentes de seu tempo. O complexo funerário possui dezenas de câmaras decoradas com relevos que retratam cenas da vida cotidiana, atividades agrícolas, cerimônias religiosas e a estrutura administrativa do Egito Antigo.",
+                impactoAtual: "Ao longo dos séculos, a tumba sofreu com saqueadores em busca de objetos valiosos. Em períodos mais recentes, atos de vandalismo deixaram inscrições modernas e danos aos relevos esculpidos nas paredes. Cada dano representa a perda irreversível de informações históricas e culturais fundamentais para o entendimento do Egito Antigo."
+            },
+            {
+                nome: "Stonehenge - Wiltshire, Inglaterra",
+                imagem: "assets/stonehenge_antiga.jpg",
+                imagemAtual: "assets/stonehenge_atual.jpg",
+                lat: 51.1789,
+                lng: -1.8262,
+                ano: -3000, // c. 3000 a.C.
+                descricao: "Erguido entre 3000 e 1500 a.C. na planície de Salisbury, Stonehenge é um dos monumentos megalíticos mais famosos do mundo. Suas pedras, algumas pesando até 25 toneladas, foram transportadas de centenas de quilômetros de distância. O sítio está alinhado astronomicamente com os solstícios e demonstra o avançado conhecimento de engenharia e astronomia das civilizações pré-históricas.",
+                impactoAtual: "Ao longo do século XX, turistas escalavam e tocavam as pedras livremente, causando desgaste na superfície. Gravações de nomes e símbolos foram encontradas nas pedras. Hoje o acesso direto é proibido, mas a pressão do turismo em massa — mais de 1 milhão de visitantes por ano — continua a ameaçar o solo e a estrutura subterrânea do sítio."
+            },
+            {
+                nome: "Machu Picchu - Cusco, Peru",
+                imagem: "assets/machu_picchu_antiga.jpg",
+                imagemAtual: "assets/machu_picchu_atual.jpg",
+                lat: -13.1631,
+                lng: -72.5450,
+                ano: 1450, // c. 1450 d.C.
+                descricao: "Construída pelos incas por volta de 1450 d.C. a 2.430 metros de altitude nos Andes peruanos, Machu Picchu foi 'redescoberta' pelo explorador Hiram Bingham em 1911. A cidade demonstra técnicas de engenharia avançadíssimas: blocos de pedra encaixados sem argamassa resistiram a séculos de terremotos. Foi declarada Patrimônio Mundial da UNESCO em 1983.",
+                impactoAtual: "O turismo massivo — que chegou a mais de 1,5 milhão de visitantes por ano — causou erosão nas trilhas, deslizamentos de terra e danos às estruturas. Turistas foram flagrados realizando pichações, quebra de peças e até defecando dentro do sítio. Em 2023, o Peru reduziu drasticamente a capacidade diária de visitantes para tentar reverter os danos."
+            },
+            {
+                nome: "Grande Muralha da China - Badaling, China",
+                imagem: "assets/muralha_china_antiga.jpg",
+                imagemAtual: "assets/muralha_china_atual.jpg",
+                lat: 40.3588,
+                lng: 116.0153,
+                ano: -221, // construção unificada iniciada 221 a.C.
+                descricao: "A construção da Grande Muralha começou no século III a.C. sob o imperador Qin Shi Huang e foi expandida por séculos, atingindo mais de 21.000 km de extensão total. Construída por centenas de milhares de trabalhadores — muitos deles prisioneiros de guerra — é o maior projeto arquitetônico da história humana e símbolo da civilização chinesa.",
+                impactoAtual: "Durante séculos, tijolos da muralha foram retirados por moradores locais para construir casas e muros. Embora pareça um dano pequeno, cada tijolo removido enfraquece a estrutura e acelera o colapso de trechos inteiros.Mais grave ainda é a perda arqueológica: muitos desses tijolos carregam marcas de oficinas imperiais, inscrições e características próprias de cada dinastia. Quando são arrancados, perdem-se informações valiosas sobre técnicas de construção, organização militar e história regional.Estima-se que mais de 30% da muralha original já tenha desaparecido. Cada fragmento retirado não é apenas pedra — é uma parte da memória histórica que não pode ser reconstruída."
+            },
+            {
+                nome: "Museu Nacional do Iraque - Bagdá, Iraque",
+                imagem: "assets/iraque_antes.jpg",
+                imagemAtual: "assets/iraque_saque.jpg",
+                lat: 33.3152,
+                lng: 44.3661,
+                ano: 1926,
+                descricao: "Fundado em 1926, o Museu Nacional do Iraque abrigava uma das mais importantes coleções da Mesopotâmia, incluindo artefatos sumérios, babilônicos e assírios com mais de 5.000 anos de história.",
+                impactoAtual: "Durante a invasão do Iraque em 2003, o museu foi saqueado e mais de 15.000 peças foram roubadas. Muitas foram recuperadas, mas milhares continuam desaparecidas no mercado ilegal de antiguidades. O caso se tornou um dos maiores exemplos modernos de perda de patrimônio arqueológico."
+            }
+        ];
+
+        let rodada = 0;
+        let pontuacaoTotal = 0;
+        let sitioAtual;
+        let miniMap = null;
+
+        // ─── MAPA PRINCIPAL ───────────────────────────────────────────────────────────
+        const map = L.map("map").setView([20, 0], 2);
+        L.tileLayer(
+            "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+            {
+                attribution: "&copy; OpenStreetMap &copy; CARTO",
+                subdomains: "abcd",
+                maxZoom: 20
+            }
+        ).addTo(map);
+
+        let userLat = 20, userLng = 0;
+
+        // marcador inicial
+        let markerUser = L.marker([20, 0], { draggable: true }).addTo(map);
+
+        // atualizar ao arrastar
+        markerUser.on("dragend", () => {
+            const pos = markerUser.getLatLng();
+            userLat = pos.lat;
+            userLng = pos.lng;
+        });
+
+        // NOVO: atualizar ao clicar no mapa
+        map.on("click", function (e) {
+            userLat = e.latlng.lat;
+            userLng = e.latlng.lng;
+
+            markerUser.setLatLng(e.latlng);
+        });
+
+        // ─── SLIDER ───────────────────────────────────────────────────────────────────
+        const slider = document.getElementById("anoSlider");
+        const anoValorEl = document.getElementById("anoValor");
+        const eraBadgeEl = document.getElementById("eraBadge");
+
+        function atualizarSliderUI() {
+            const val = parseInt(slider.value);
+            anoValorEl.innerText = formatarAno(val);
+            const era = getEra(val);
+            eraBadgeEl.innerText = era;
+            eraBadgeEl.className = "era-badge " + (val < 0 ? "era-ac" : "era-dc");
+        }
+
+        slider.oninput = atualizarSliderUI;
+        atualizarSliderUI(); // inicializa
+
+        // Posiciona o marcador "ano 0" corretamente proporcional ao range do slider
+        (function posicionarMarcadorZero() {
+
+            const pct = "81.7%";
+
+            document.getElementById("zeroCenterMark").style.left = pct;
+            document.getElementById("zeroCenterLabel").style.left = pct;
+
+        })();
+
+        // ─── CÁLCULOS ─────────────────────────────────────────────────────────────────
+        function calcularDistancia(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // ─── RODADAS ──────────────────────────────────────────────────────────────────
+        function carregarRodada() {
+            sitioAtual = sitios[rodada % sitios.length];
+            document.getElementById("imagemSite").src = sitioAtual.imagem;
+            document.getElementById("roundAtual").innerText = rodada + 1;
+
+            markerUser.setLatLng([20, 0]);
+            userLat = 20;
+            userLng = 0;
+
+            slider.value = 0;
+            atualizarSliderUI();
+
+            map.setView([20, 0], 2);
+        }
+
+        carregarRodada();
+
+        // Ícones personalizados
+        const iconUser = L.icon({
+            iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+            shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        const iconCorrect = L.icon({
+            iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+            shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        function confirmarResposta() {
+
+            const distancia = calcularDistancia(userLat, userLng, sitioAtual.lat, sitioAtual.lng);
+            const diff = diffAnos(slider.value, sitioAtual.ano);
+
+            // -------- PONTUAÇÃO NOVA --------
+
+            // 📍 Distância (0 a 1000)
+            const maxDistancia = 20000;
+            let pontosDistancia = Math.max(0, 1000 * (1 - (distancia / maxDistancia)));
+
+            // 📅 Ano (0 a 1000)
+            const maxAnoDiff = 10000;
+            let pontosAno = Math.max(0, 1000 * (1 - (diff / maxAnoDiff)));
+
+            let pontos = pontosDistancia + pontosAno;
+
+            pontuacaoTotal += pontos;
+
+            document.getElementById("pontuacaoTotal").innerText = Math.floor(pontuacaoTotal);
+
+            document.getElementById("overlayResultado").style.display = "block";
+
+            document.getElementById("imgHistorica").src = sitioAtual.imagem;
+            document.getElementById("imgAtual").src = sitioAtual.imagemAtual;
+            document.getElementById("tituloResultado").innerText = sitioAtual.nome;
+            document.getElementById("anoReal").innerText = formatarAno(sitioAtual.ano);
+            document.getElementById("anoDiff").innerText =
+                `${diff} anos de diferença · seu palpite: ${formatarAno(slider.value)}`;
+
+            document.getElementById("localReal").innerText = sitioAtual.nome.toUpperCase();
+            document.getElementById("distanciaReal").innerText =
+                `${distancia.toFixed(0)} km de distância`;
+
+            document.getElementById("descricaoResultado").innerText = sitioAtual.descricao;
+            document.getElementById("impactoResultado").innerText = sitioAtual.impactoAtual;
+
+            // 🔎 Mostrar pontuação detalhada (opcional mas recomendado)
+            document.getElementById("distanciaReal").innerText +=
+                ` · ${Math.floor(pontosDistancia)} pts localização`;
+
+            document.getElementById("anoDiff").innerText +=
+                ` · ${Math.floor(pontosAno)} pts ano`;
+
+            // MINI MAPA
+            if (miniMap) {
+                miniMap.remove();
+                miniMap = null;
+            }
+
+            miniMap = L.map("miniMap");
+            L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+                    attribution: "&copy; OpenStreetMap &copy; CARTO",
+                    subdomains: "abcd",
+                    maxZoom: 20
+                }
+            ).addTo(miniMap);
+
+            const bounds = L.latLngBounds([
+                [userLat, userLng],
+                [sitioAtual.lat, sitioAtual.lng]
+            ]);
+
+            miniMap.fitBounds(bounds, { padding: [50, 50] });
+
+            L.marker([userLat, userLng], { icon: iconUser }).addTo(miniMap);
+            L.marker([sitioAtual.lat, sitioAtual.lng], { icon: iconCorrect }).addTo(miniMap);
+
+            L.polyline(
+                [[userLat, userLng], [sitioAtual.lat, sitioAtual.lng]],
+                { dashArray: "5,5" }
+            ).addTo(miniMap);
+        }
+
+        function proximaRodada() {
+            document.getElementById("overlayResultado").style.display = "none";
+            rodada++;
+
+            if (rodada >= 5) {
+                document.querySelector(".container").style.display = "none";
+                document.querySelector(".top-bar").style.display = "none";
+                document.getElementById("finalTela").style.display = "flex";
+
+                const scoreFinal = Math.floor(pontuacaoTotal);
+                document.getElementById("finalScore").innerText = scoreFinal;
+
+                // ---- CLASSIFICAÇÃO ----
+                let classificacao = "";
+
+                if (scoreFinal >= 9000) {
+                    classificacao = "🏆 Arqueólogo Lendário";
+                } else if (scoreFinal >= 7500) {
+                    classificacao = "🥇 Arqueólogo Mestre";
+                } else if (scoreFinal >= 6000) {
+                    classificacao = "🥈 Explorador Experiente";
+                } else if (scoreFinal >= 4000) {
+                    classificacao = "🥉 Pesquisador Iniciante";
+                } else if (scoreFinal >= 2000) {
+                    classificacao = "📜 Aprendiz de Campo";
+                } else {
+                    classificacao = "🧭 Turista Curioso";
+                }
+
+                // adiciona abaixo da pontuação
+                const finalTela = document.getElementById("finalTela");
+
+                const rankingEl = document.createElement("h2");
+                rankingEl.innerText = "Classificação: " + classificacao;
+
+                finalTela.appendChild(rankingEl);
+
+                return;
+            }
+
+            carregarRodada();
+        }
+
+        // ─── ZOOM INTERATIVO NA IMAGEM ─────────────────────────
+
+        const zoomContainer = document.querySelector(".zoom-container");
+        const zoomImage = document.getElementById("imagemSite");
+
+        let scale = 1;
+        let posX = 0;
+        let posY = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        function limitarMovimento() {
+            const containerRect = zoomContainer.getBoundingClientRect();
+            const imgWidth = zoomImage.offsetWidth * scale;
+            const imgHeight = zoomImage.offsetHeight * scale;
+
+            const maxX = (imgWidth - containerRect.width) / 2;
+            const maxY = (imgHeight - containerRect.height) / 2;
+
+            posX = Math.min(Math.max(posX, -maxX), maxX);
+            posY = Math.min(Math.max(posY, -maxY), maxY);
+        }
+
+        function atualizarTransform() {
+            limitarMovimento();
+            zoomImage.style.transform =
+                `translate(${posX}px, ${posY}px) scale(${scale})`;
+        }
+
+        // 🔍 Zoom com scroll (com zoom no centro)
+        zoomContainer.addEventListener("wheel", function (e) {
+            e.preventDefault();
+
+            const zoomSpeed = 0.15;
+            const oldScale = scale;
+
+            if (e.deltaY < 0) {
+                scale += zoomSpeed;
+            } else {
+                scale -= zoomSpeed;
+            }
+
+            scale = Math.min(Math.max(1, scale), 4);
+
+            // Ajuste para manter centro estável
+            const rect = zoomContainer.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left - rect.width / 2;
+            const offsetY = e.clientY - rect.top - rect.height / 2;
+
+            posX -= offsetX * (scale - oldScale) / oldScale;
+            posY -= offsetY * (scale - oldScale) / oldScale;
+
+            atualizarTransform();
+        });
+
+        // 🖱 Arrastar
+        zoomContainer.addEventListener("mousedown", function (e) {
+            if (scale <= 1) return;
+
+            isDragging = true;
+            startX = e.clientX - posX;
+            startY = e.clientY - posY;
+            zoomContainer.style.cursor = "grabbing";
+        });
+
+        window.addEventListener("mousemove", function (e) {
+            if (!isDragging) return;
+
+            posX = e.clientX - startX;
+            posY = e.clientY - startY;
+
+            atualizarTransform();
+        });
+
+        window.addEventListener("mouseup", function () {
+            isDragging = false;
+            zoomContainer.style.cursor = "grab";
+        });
+
+        // 🔄 Duplo clique reseta
+        zoomContainer.addEventListener("dblclick", function () {
+            scale = 1;
+            posX = 0;
+            posY = 0;
+            atualizarTransform();
+        });
+
+    </script>
+
+</body>
+
+</html>

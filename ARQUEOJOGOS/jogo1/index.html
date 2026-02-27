@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EscavaTermo</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+    <style>
+        /* ================= PALETA ================= */
+        :root {
+            --bg: #b08974;
+            --panel: #8b5e3c;
+            --tile-border: #a47148;
+
+            --key: #8b5e3c;
+            --key-text: #fff;
+
+            --correct: #6aaa64;
+            --present: #c9b458;
+            --absent: #3a3a3c;
+            --text: #ffffff;
+        }
+
+        /* ========================================= */
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--bg);
+            font-family: 'Mitr', sans-serif;
+            color: var(--text);
+
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            align-items: center;
+            justify-items: center;
+
+            outline: none;
+        }
+
+        header {
+            text-align: center;
+            padding-top: 10px;
+        }
+
+        header h1 {
+            font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        #hint {
+            font-size: .9rem;
+            opacity: .9;
+            margin-top: 4px;
+        }
+
+        /* TABULEIRO */
+        #board {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 6px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .tile {
+            width: clamp(58px, 6vw, 72px);
+            height: clamp(58px, 6vw, 72px);
+            font-size: clamp(1.5rem, 2vw, 2rem);
+
+            border: 2px solid var(--tile-border);
+            background: var(--panel);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .tile.active {
+            border-color: #fff;
+            border-width: 3px;
+        }
+
+        .tile.correct {
+            background: var(--correct);
+            border-color: var(--correct);
+        }
+
+        .tile.present {
+            background: var(--present);
+            border-color: var(--present);
+        }
+
+        .tile.absent {
+            background: var(--absent);
+            border-color: var(--absent);
+        }
+
+        /* TECLADO */
+        .keyboard {
+            width: min(92vw, 520px);
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-bottom: 10px;
+        }
+
+        .key-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .key {
+            background: var(--key);
+            color: var(--key-text);
+            border-radius: 4px;
+            padding: clamp(8px, 1vw, 14px);
+            min-width: clamp(38px, 5vw, 55px);
+            font-size: clamp(.85rem, 1vw, 1rem);
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .key.wide {
+            min-width: 60px;
+        }
+
+        .key.correct {
+            background: var(--correct);
+        }
+
+        .key.present {
+            background: var(--present);
+        }
+
+        .key.absent {
+            background: var(--absent);
+        }
+
+        /* MODAL */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal-box {
+            background: #fff;
+            color: #000;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 300px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>ESCAVATERMO</h1>
+        <div id="hint">💡 Dica:</div>
+    </header>
+
+    <main class="flex-1 flex flex-col items-center justify-center gap-4">
+        <div id="board"></div>
+    </main>
+
+    <div class="keyboard">
+        <div class="key-row">
+            <div class="key" data-key="Q">Q</div>
+            <div class="key" data-key="W">W</div>
+            <div class="key" data-key="E">E</div>
+            <div class="key" data-key="R">R</div>
+            <div class="key" data-key="T">T</div>
+            <div class="key" data-key="Y">Y</div>
+            <div class="key" data-key="U">U</div>
+            <div class="key" data-key="I">I</div>
+            <div class="key" data-key="O">O</div>
+            <div class="key" data-key="P">P</div>
+        </div>
+        <div class="key-row">
+            <div class="key" data-key="A">A</div>
+            <div class="key" data-key="S">S</div>
+            <div class="key" data-key="D">D</div>
+            <div class="key" data-key="F">F</div>
+            <div class="key" data-key="G">G</div>
+            <div class="key" data-key="H">H</div>
+            <div class="key" data-key="J">J</div>
+            <div class="key" data-key="K">K</div>
+            <div class="key" data-key="L">L</div>
+        </div>
+        <div class="key-row">
+            <div class="key wide" data-key="ENTER">ENTER</div>
+            <div class="key" data-key="Z">Z</div>
+            <div class="key" data-key="X">X</div>
+            <div class="key" data-key="C">C</div>
+            <div class="key" data-key="V">V</div>
+            <div class="key" data-key="B">B</div>
+            <div class="key" data-key="N">N</div>
+            <div class="key" data-key="M">M</div>
+            <div class="key wide" data-key="BACKSPACE">⌫</div>
+        </div>
+    </div>
+
+    <div id="end-modal" class="modal hidden">
+        <div class="modal-box">
+            <h2 id="end-title"></h2>
+            <p id="end-text" class="mt-2"></p>
+            <button onclick="nextGame()" class="mt-4 px-4 py-2 bg-black text-white rounded">
+                Próxima palavra
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* ========= CONTEÚDO ========= */
+
+        // Recupera o progresso salvo
+        let currentWordIndex = parseInt(localStorage.getItem('escavatermoProgress') || '0');
+
+        // Se já completou todas as palavras, reinicia
+        if (currentWordIndex >= 4) {
+            currentWordIndex = 0;
+            localStorage.setItem('escavatermoProgress', '0');
+        }
+
+        const WORDS = [
+            {
+                word: "MAIAS",
+                hint: "Civilização antiga da Mesoamérica.",
+                card: "Os Maias desenvolveram escrita, arquitetura e conhecimentos astronômicos."
+            },
+            {
+                word: "OSSOS",
+                hint: "Vestígios orgânicos comuns em sítios arqueológicos.",
+                card: "Ossos ajudam a entender dieta, saúde e rituais do passado."
+            },
+            {
+                word: "PEDRA",
+                hint: "Material essencial para ferramentas pré-históricas.",
+                card: "A pedra foi um dos primeiros materiais usados por humanos."
+            },
+            {
+                word: "FARAO",
+                hint: "Título no Egito Antigo",
+                card: "Os faraós no Egito Antigo além de governar, tinham responsabilidades religiosas e administrativas, mantendo a ordem e a harmonia cósmica."
+            }
+        ];
+        /* ============================ */
+
+        const WORD_LENGTH = 5, MAX_ATTEMPTS = 6;
+        let row = 0, guess = "     ", currentCol = 0;
+        const data = WORDS[currentWordIndex];
+        const word = data.word;
+
+        document.getElementById("hint").textContent = "💡 Dica: " + data.hint;
+
+        const board = document.getElementById("board");
+        for (let i = 0; i < MAX_ATTEMPTS; i++) {
+            const r = document.createElement("div");
+            r.className = "row";
+            for (let j = 0; j < 5; j++) {
+                const t = document.createElement("div");
+                t.className = "tile";
+                t.dataset.row = i;
+                t.dataset.col = j;
+                t.addEventListener("click", () => {
+                    if (i === row) selectTile(i, j);
+                });
+                r.appendChild(t);
+            }
+            board.appendChild(r);
+        }
+
+        selectTile(0, 0);
+
+        function selectTile(r, c) {
+            document.querySelectorAll(".tile.active").forEach(t => t.classList.remove("active"));
+            if (r === row) {
+                currentCol = c;
+                board.children[r].children[c].classList.add("active");
+            }
+        }
+
+        function handleInput(k) {
+            if (k === "ENTER") submit();
+            else if (k === "BACKSPACE") back();
+            else if (/^[A-Z]$/.test(k)) {
+                guess = guess.split("");
+                guess[currentCol] = k;
+                guess = guess.join("");
+                draw();
+                if (currentCol < 4) selectTile(row, currentCol + 1);
+            }
+        }
+
+        function draw() {
+            const r = board.children[row];
+            for (let i = 0; i < 5; i++) {
+                r.children[i].textContent = guess[i] === " " ? "" : guess[i];
+            }
+        }
+
+        function back() {
+            guess = guess.split("");
+            guess[currentCol] = " ";
+            guess = guess.join("");
+            draw();
+            if (currentCol > 0) selectTile(row, currentCol - 1);
+        }
+
+        function submit() {
+            if (guess.trim().length < 5) return;
+            const r = board.children[row];
+
+            // Conta quantas vezes cada letra aparece na palavra correta
+            const wordLetterCount = {};
+            for (let l of word) {
+                wordLetterCount[l] = (wordLetterCount[l] || 0) + 1;
+            }
+
+            // Primeiro marca os corretos (verde)
+            const states = Array(5).fill("");
+            for (let i = 0; i < 5; i++) {
+                if (guess[i] === word[i]) {
+                    states[i] = "correct";
+                    wordLetterCount[guess[i]]--;
+                }
+            }
+
+            // Depois marca os presentes (amarelo) e ausentes (cinza)
+            for (let i = 0; i < 5; i++) {
+                if (states[i] === "correct") continue;
+
+                if (word.includes(guess[i]) && wordLetterCount[guess[i]] > 0) {
+                    states[i] = "present";
+                    wordLetterCount[guess[i]]--;
+                } else {
+                    states[i] = "absent";
+                }
+            }
+
+            // Aplica as cores
+            for (let i = 0; i < 5; i++) {
+                r.children[i].classList.add(states[i]);
+                const key = document.querySelector(`.key[data-key="${guess[i]}"]`);
+                if (key) {
+                    // Só atualiza a cor da tecla se for uma cor melhor
+                    if (states[i] === "correct") {
+                        key.classList.remove("present", "absent");
+                        key.classList.add("correct");
+                    } else if (states[i] === "present" && !key.classList.contains("correct")) {
+                        key.classList.remove("absent");
+                        key.classList.add("present");
+                    } else if (states[i] === "absent" && !key.classList.contains("correct") && !key.classList.contains("present")) {
+                        key.classList.add("absent");
+                    }
+                }
+            }
+
+            if (guess === word) end(true);
+            row++;
+            guess = "     ";
+            currentCol = 0;
+            if (row < 6) selectTile(row, 0);
+            if (row === 6) end(false);
+        }
+
+        function end(win) {
+            document.getElementById("end-modal").classList.remove("hidden");
+            document.getElementById("end-title").textContent =
+                win ? "🎉 Descoberta arqueológica!" : "⛏️ Escavação encerrada";
+            document.getElementById("end-text").textContent = data.card;
+
+            // Salva o progresso apenas se venceu
+            if (win) {
+                currentWordIndex++;
+                if (currentWordIndex >= WORDS.length) currentWordIndex = 0;
+                localStorage.setItem('escavatermoProgress', currentWordIndex);
+            }
+        }
+
+        function nextGame() {
+            location.reload();
+        }
+
+        document.addEventListener("keydown", e => {
+
+            const modalOpen = !document.getElementById("end-modal").classList.contains("hidden");
+
+            // Se o modal estiver aberto → ENTER vai para próxima palavra
+            if (modalOpen && e.key === "Enter") {
+                nextGame();
+                return;
+            }
+
+            handleInput(e.key.toUpperCase());
+        });
+
+        window.addEventListener("load", () => {
+            setTimeout(() => {
+                document.addEventListener("click", () => {
+                    window.focus();
+                });
+                window.focus();
+            }, 300);
+        });
+    </script>
+
+</body>
+
+</html>
