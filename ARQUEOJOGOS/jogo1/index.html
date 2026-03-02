@@ -320,6 +320,14 @@
 
         selectTile(0, 0);
 
+        // ====== ATIVAR TECLADO COM CLIQUE ======
+        document.querySelectorAll(".key").forEach(key => {
+            key.addEventListener("click", () => {
+                const value = key.dataset.key;
+                handleInput(value);
+            });
+        });
+
         function selectTile(r, c) {
             document.querySelectorAll(".tile.active").forEach(t => t.classList.remove("active"));
             if (r === row) {
@@ -456,5 +464,6 @@
 </body>
 
 </html>
+
 
 
