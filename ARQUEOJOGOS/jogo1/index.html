@@ -245,7 +245,7 @@
         let currentWordIndex = parseInt(localStorage.getItem('escavatermoProgress') || '0');
 
         // Se já completou todas as palavras, reinicia
-        if (currentWordIndex >= 4) {
+        if (currentWordIndex >= 8) {
             currentWordIndex = 0;
             localStorage.setItem('escavatermoProgress', '0');
         }
@@ -456,4 +456,5 @@
 </body>
 
 </html>
+
 
