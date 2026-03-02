@@ -50,7 +50,7 @@
         }
 
         header h1 {
-            font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+            font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: 2px;
         }
@@ -75,9 +75,8 @@
         }
 
         .tile {
-            width: clamp(58px, 6vw, 72px);
-            height: clamp(58px, 6vw, 72px);
-            font-size: clamp(1.5rem, 2vw, 2rem);
+            width: 58px;
+            height: 58px;
 
             border: 2px solid var(--tile-border);
             background: var(--panel);
@@ -86,6 +85,7 @@
             align-items: center;
             justify-content: center;
 
+            font-size: 1.6rem;
             font-weight: 700;
             cursor: pointer;
             transition: border-color 0.2s;
@@ -113,8 +113,8 @@
 
         /* TECLADO */
         .keyboard {
-            width: min(92vw, 520px);
-            max-width: 400px;
+            width: 100%;
+            max-width: 360px;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -131,16 +131,16 @@
             background: var(--key);
             color: var(--key-text);
             border-radius: 4px;
-            padding: clamp(8px, 1vw, 14px);
-            min-width: clamp(38px, 5vw, 55px);
-            font-size: clamp(.85rem, 1vw, 1rem);
+            padding: 8px;
+            min-width: 30px;
             font-weight: 600;
             cursor: pointer;
             user-select: none;
+            font-size: .85rem;
         }
 
         .key.wide {
-            min-width: 60px;
+            min-width: 52px;
         }
 
         .key.correct {
