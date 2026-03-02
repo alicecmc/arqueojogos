@@ -459,11 +459,25 @@
                 window.focus();
             }, 300);
         });
+        // ====== ATIVAR TECLADO COM CLIQUE ======
+        document.querySelectorAll(".key").forEach(key => {
+        key.addEventListener("click", function () {
+    
+            const modalOpen = !document.getElementById("end-modal").classList.contains("hidden");
+    
+            // Se o modal estiver aberto, clique não faz nada
+            if (modalOpen) return;
+    
+            const value = this.dataset.key;
+            handleInput(value);
+        });
+});
     </script>
 
 </body>
 
 </html>
+
 
 
 
